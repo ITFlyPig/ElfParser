@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/yuelin/CLionProjects/ElfParser/main.cpp
+iostream
+-
+cstdlib
+-
+cmath
+-
+string
+/Users/yuelin/CLionProjects/ElfParser/string
+fstream
+/Users/yuelin/CLionProjects/ElfParser/fstream
+
