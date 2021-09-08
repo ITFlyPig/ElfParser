@@ -1,10 +1,27 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include <map>
 #include "string"
 #include "fstream"
 
 using namespace std;
+
+map<int, string> section_type = {
+        {0,  "NULL"},
+        {1,  "PROGBITS"},
+        {2,  "SYMTAB"},
+        {3,  "STRTAB"},
+        {4,  "RELA"},
+        {5,  "HASH"},
+        {6,  "DYNAMIC"},
+        {7,  "NOTE"},
+        {8,  "NOBITS"},
+        {9,  "REL"},
+        {10, "SHLIB"},
+        {11, "DNYSYM"},
+
+};
 
 typedef uint32_t Elf32_Word; // 32位版本无符号整形
 typedef uint32_t Elf32_Off;  // 32位的版本偏移地址
@@ -13,15 +30,25 @@ typedef uint16_t Elf32_Half;
 
 // section 结构体
 typedef struct elf32_shdr {
+    // 段名是个字符串,它位于一个叫做".shstrtab"的字符串表。 sh_name是段名字符串在“.shstrtab”中的偏移
     Elf32_Word sh_name;
+    // 段的类型
     Elf32_Word sh_type;
+    // 段的标志位
     Elf32_Word sh_flags;
+    // 如果该段可以被加载，则 sh_addr为该段被加載后在进程地址空间中的虛拟地址;否则 sh_addr为0
     Elf32_Addr sh_addr;
+    // 如果该段存在于文件中,则表示该段在文件中的偏移;否则无意义。比如sh_ofet对于BSS段来说就没有意义
     Elf32_Off sh_offset;
+    // 段的长度
     Elf32_Word sh_size;
+    // 段链接信息
     Elf32_Word sh_link;
+    // 段链接信息
     Elf32_Word sh_info;
+    // 段地址对齐
     Elf32_Word sh_addralign;
+    // 项的长度
     Elf32_Word sh_entsize;
 } Elf32_Shdr;
 
@@ -67,7 +94,7 @@ void print_char_arr(char *arr, int size) {
     if (size <= 0) return;
     for (int i = 0; i < size; ++i) {
         unsigned char c = arr[i];
-        printf("%02x ",c);
+        printf("%02x ", c);
         if (i >= (size - 1)) {
             printf("\n");
         }
@@ -138,7 +165,7 @@ Elf32_Word to_int(unsigned char *arr, int len) {
  * @param start
  * @param size
  */
-void slice(unsigned char *origin,unsigned char *out, int start, int size) {
+void slice(unsigned char *origin, unsigned char *out, int start, int size) {
     int end = start + size;
     int index = 0;
     for (int i = start; i < end; ++i) {
@@ -147,7 +174,7 @@ void slice(unsigned char *origin,unsigned char *out, int start, int size) {
     }
 }
 
-Elf32_Word get_int(unsigned char *origin,int index, int size) {
+Elf32_Word get_int(unsigned char *origin, int index, int size) {
     unsigned char arr[size];
     slice(origin, arr, index, size);
     return to_int(arr, size);
@@ -193,16 +220,171 @@ void fill(Elf32_Shdr *p_shdr, unsigned char *one_section_arr, int len) {
 
 }
 
-void parse_one_section_header(unsigned char *one_section_arr, int len) {
+void parse_one_section_header(Elf32_Shdr *shdr, unsigned char *one_section_arr, int len) {
     if (len != sizeof(Elf32_Shdr)) {
         printf("parse_one_section_header 传入的参数不合法，该数组的长度应该为：%d \n", sizeof(Elf32_Shdr));
         return;
     }
     // 按Elf32_Shdr的结构来解析该数组
-
-    Elf32_Shdr shdr;
     // 将数据填充到结构体
-    fill(&shdr, one_section_arr, len);
+    fill(shdr, one_section_arr, len);
+}
+
+/**
+ * 获取section的type
+ * @param sh_type
+ * @return
+ */
+std::string get_type(Elf32_Word sh_type) {
+    return section_type.at(sh_type);
+}
+
+/**
+ * 打印一个section表的item信息
+ * @param shdr
+ */
+void print_elf32_shdr(Elf32_Shdr *shdr) {
+    if (shdr == nullptr) return;
+    printf("========start=========== \n");
+    printf("在段表字符串表中的下标：%d \n", shdr->sh_name);
+
+    try {
+        string type_str = get_type(shdr->sh_type);
+        printf("段的类型：%s (%d) \n", type_str.c_str(), shdr->sh_type);
+    } catch (...) {
+        cout << "catch (...)" << endl;
+    }
+    printf("段在文件中的偏移量：0x%02X \n", shdr->sh_offset);
+    printf("段的长度：0x%02X \n", shdr->sh_size);
+
+    printf("========end=========== \n");
+
+
+}
+
+void get_shstrtab(ifstream &in, char *shstrtab_p, Elf32_Half size, Elf32_Off off) {
+    in.seekg(off);
+    streamoff pos = in.tellg();
+    in.read(shstrtab_p, size);
+    cout << "读取到的段表字符串：" << endl;
+    for (Elf32_Half i = 0; i < size; ++i) {
+        cout << shstrtab_p[i];
+    }
+}
+
+/**
+ * 获取magic的class数据:3字节（ELF）+ 2字节（64/32位）+ 1字节\0
+ * @param magic
+ * @return
+ */
+string get_magic_class(unsigned char *magic) {
+    char class_arr[6];
+    class_arr[0] = magic[1];
+    class_arr[1] = magic[2];
+    class_arr[2] = magic[3];
+    if (magic[4] == 1) { // 32位
+        class_arr[3] = '3';
+        class_arr[4] = '2';
+    } else { // 64位
+        class_arr[3] = '6';
+        class_arr[4] = '4';
+    }
+    class_arr[5] = '\0';
+    string class_str = class_arr;
+    return class_str;
+}
+
+/**
+ * 获取魔数中的data，在第6个字节，表示是大端还是小端
+ * @param magic
+ * @return
+ */
+string get_magic_data(unsigned char *magic) {
+    return magic[5] == 1 ? "little endian" : "big endian";
+}
+
+/**
+ * 第7个字节，规定ELF文件的主版本号
+ * @param magic
+ * @return
+ */
+string get_magic_version(unsigned char *magic) {
+   return to_string((int)magic[6]);
+}
+
+/**
+ * 重写read方法，使他支持读取到unsigned char的数组中
+ * @param in
+ * @param out
+ * @param size
+ */
+void read(ifstream &in,unsigned char *out, int size) {
+    char arr[size];
+    in.read(arr, size);
+    for (int i = 0; i < size; ++i) {
+        out[i] = arr[i];
+    }
+}
+
+Elf32_Half read_elf32_half(ifstream &in){
+    int size = sizeof(Elf32_Half);
+   unsigned char arr[size];
+    read(in, arr, size);
+    return to_int(arr, size);
+}
+
+Elf32_Word read_elf32_word(ifstream &in){
+    int size = sizeof(Elf32_Word);
+    unsigned char arr[size];
+    read(in, arr, size);
+    return to_int(arr, size);
+}
+
+Elf32_Addr read_elf32_addr(ifstream &in){
+    int size = sizeof(Elf32_Addr);
+    unsigned char arr[size];
+    read(in, arr, size);
+    return to_int(arr, size);
+}
+
+Elf32_Off read_elf32_off(ifstream &in){
+    int size = sizeof(Elf32_Off);
+    unsigned char arr[size];
+    read(in, arr, size);
+    return to_int(arr, size);
+}
+
+/**
+ * 解析文件头
+ * @param header
+ * @param in
+ */
+void parse_header(Elf32_Ehdr &header, ifstream &in) {
+    in.seekg(0, ios::beg);
+    // 读取魔数
+    char magic[EI_NIDENT];
+    in.read(magic, EI_NIDENT);
+    // 将读取到的数据保存到结构体
+    for (int i = 0; i < EI_NIDENT; ++i) {
+        header.e_ident[i] = magic[i];
+    }
+    cout << "class:" << get_magic_class(header.e_ident) << " Data:" << get_magic_data(header.e_ident) << " Version:" << get_magic_version(header.e_ident) << endl;
+    // 读取type
+    header.e_type = read_elf32_half(in);
+    // 读取machine
+    header.e_machine = read_elf32_half(in);
+    header.e_version = read_elf32_word(in);
+    header.e_entry = read_elf32_addr(in);
+    header.e_phoff = read_elf32_off(in);
+    header.e_shoff = read_elf32_off(in);
+    header.e_flags = read_elf32_word(in);
+    header.e_ehsize = read_elf32_half(in);
+    header.e_phentsize = read_elf32_half(in);
+    header.e_phnum = read_elf32_half(in);
+    header.e_shentsize = read_elf32_half(in);
+    header.e_shnum = read_elf32_half(in);
+    header.e_shstrndx = read_elf32_half(in);
+
 
 }
 
@@ -218,24 +400,48 @@ int main() {
         cout << "文件打开失败" << endl;
         return -1;
     }
-    printf("一个char占 %d 个字节 \n", sizeof(char));
+    Elf32_Ehdr elf32_ehdr;
+    parse_header(elf32_ehdr, in);
 
-    // 开始读取段表描述符
-    in.seekg(203336);
+//    printf("一个char占 %d 个字节 \n", sizeof(char));
+//    Elf32_Half size = 0x194;
+//    Elf32_Off off = 0x318b3;
+//    char shstrtab[size];
+//    get_shstrtab(in, shstrtab, size, off);
 
-
-    // 一个section 描述占用40个字节，总的有38个描述
-
-    for (int i = 0; i < 2; ++i) {
-        int shent_len = 40;
-        char shent_arr[shent_len];
-        in.read(shent_arr, shent_len);
+//
+//
+//    int section_num = 38;
+//    // 保存段表
+//    Elf32_Shdr section_tab[section_num];
+//
+//    // .shstrtab（段表字符串表）在段表中的下标
+//    Elf32_Half e_shstrndx = 37;
+//
+//    // 一个section 描述占用40个字节，总的有38个描述
+//    int shent_len = 40;
+//
+//    for (int i = 0; i < section_num; ++i) {
+//
+//        char shent_arr[shent_len];
+//        in.read(shent_arr, shent_len);
+//        streamoff pos= in.tellg();
+//        cout << "当前偏移量" << pos << endl;
+//        // 解析每一个section 描述
 //        print_char_arr(shent_arr, shent_len);
-        // 解析每一个section 描述
-        print_char_arr(shent_arr, shent_len);
-        parse_one_section_header(reinterpret_cast<unsigned char *>(shent_arr), shent_len);
+//        parse_one_section_header(&section_tab[i], reinterpret_cast<unsigned char *>(shent_arr), shent_len);
+////        print_elf32_shdr(&section_tab[i]);
+//    }
 
-    }
+    // 读取段表字符串表到内存中
+//    Elf32_Shdr shstrtab_shdr = section_tab[e_shstrndx];
+//    printf("段表在文件中的偏移量：%02x, 大小：%02x", shstrtab_shdr.sh_offset, shstrtab_shdr.sh_size);
+//    char shstrtab[shstrtab_shdr.sh_size + 1];
+//    in.seekg(shstrtab_shdr.sh_offset);
+//    in.read(shstrtab, shstrtab_shdr.sh_size + 1);
+//
+//    printf("开始输出段表字符串表\n %s", shstrtab);
+
 
 
 
