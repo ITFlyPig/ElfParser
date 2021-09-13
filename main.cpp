@@ -7,6 +7,9 @@
 
 using namespace std;
 
+static const int ERROR = -1;
+static const int SUCCESS = 0;
+
 map<int, string> section_type = {
         {0,  "NULL"},
         {1,  "PROGBITS"},
@@ -309,7 +312,7 @@ string get_magic_data(unsigned char *magic) {
  * @return
  */
 string get_magic_version(unsigned char *magic) {
-   return to_string((int)magic[6]);
+    return to_string((int) magic[6]);
 }
 
 /**
@@ -318,7 +321,7 @@ string get_magic_version(unsigned char *magic) {
  * @param out
  * @param size
  */
-void read(ifstream &in,unsigned char *out, int size) {
+void read(ifstream &in, unsigned char *out, int size) {
     char arr[size];
     in.read(arr, size);
     for (int i = 0; i < size; ++i) {
@@ -326,28 +329,28 @@ void read(ifstream &in,unsigned char *out, int size) {
     }
 }
 
-Elf32_Half read_elf32_half(ifstream &in){
+Elf32_Half read_elf32_half(ifstream &in) {
     int size = sizeof(Elf32_Half);
-   unsigned char arr[size];
+    unsigned char arr[size];
     read(in, arr, size);
     return to_int(arr, size);
 }
 
-Elf32_Word read_elf32_word(ifstream &in){
+Elf32_Word read_elf32_word(ifstream &in) {
     int size = sizeof(Elf32_Word);
     unsigned char arr[size];
     read(in, arr, size);
     return to_int(arr, size);
 }
 
-Elf32_Addr read_elf32_addr(ifstream &in){
+Elf32_Addr read_elf32_addr(ifstream &in) {
     int size = sizeof(Elf32_Addr);
     unsigned char arr[size];
     read(in, arr, size);
     return to_int(arr, size);
 }
 
-Elf32_Off read_elf32_off(ifstream &in){
+Elf32_Off read_elf32_off(ifstream &in) {
     int size = sizeof(Elf32_Off);
     unsigned char arr[size];
     read(in, arr, size);
@@ -368,7 +371,8 @@ void parse_header(Elf32_Ehdr &header, ifstream &in) {
     for (int i = 0; i < EI_NIDENT; ++i) {
         header.e_ident[i] = magic[i];
     }
-    cout << "class:" << get_magic_class(header.e_ident) << " Data:" << get_magic_data(header.e_ident) << " Version:" << get_magic_version(header.e_ident) << endl;
+    cout << "class:" << get_magic_class(header.e_ident) << " Data:" << get_magic_data(header.e_ident) << " Version:"
+         << get_magic_version(header.e_ident) << endl;
     // 读取type
     header.e_type = read_elf32_half(in);
     // 读取machine
@@ -384,8 +388,60 @@ void parse_header(Elf32_Ehdr &header, ifstream &in) {
     header.e_shentsize = read_elf32_half(in);
     header.e_shnum = read_elf32_half(in);
     header.e_shstrndx = read_elf32_half(in);
+}
 
+/**
+ * 解析段表，得到段头信息
+ * @param in
+ * @param file_header
+ * @param section_headers
+ * @return
+ */
+int parse_section_headers(ifstream &in, Elf32_Ehdr &file_header, Elf32_Shdr *section_headers) {
+    // 检查参数
+    if (file_header.e_shoff <= 0 || file_header.e_shnum <= 0) {
+        return ERROR;
+    }
 
+    in.seekg(file_header.e_shoff);
+
+    int section_header_num = file_header.e_shnum;
+    int section_header_size = file_header.e_shentsize;
+
+    for (int i = 0; i < section_header_num; ++i) {
+        char shent_arr[section_header_size];
+        in.read(shent_arr, section_header_size);
+        streamoff pos = in.tellg();
+        cout << "当前偏移量" << pos << endl;
+        // 解析每一个section 描述
+        print_char_arr(shent_arr, section_header_size);
+        parse_one_section_header(&section_headers[i], reinterpret_cast<unsigned char *>(shent_arr),
+                                 section_header_size);
+        print_elf32_shdr(&section_headers[i]);
+    }
+
+}
+
+void cur_stream_pos(ifstream &in) {
+    streampos pos = in.tellg();
+    printf("当前偏移位置%X \n", pos);
+}
+
+/**
+ * 从段表字符串表中获取段的名称
+ * @param off
+ * @param shstrtab_content
+ * @return
+ */
+void get_section_name(char * section_name, Elf32_Word off, char *shstrtab_content) {
+    Elf32_Word index = 0;
+    Elf32_Word offset = off;
+    while (shstrtab_content[offset] != '\0') {
+        section_name[index] = shstrtab_content[offset];
+        index++;
+        offset++;
+    }
+    section_name[index] = '\0';
 }
 
 int main() {
@@ -400,8 +456,51 @@ int main() {
         cout << "文件打开失败" << endl;
         return -1;
     }
-    Elf32_Ehdr elf32_ehdr;
-    parse_header(elf32_ehdr, in);
+    // 解析文件头
+    Elf32_Ehdr file_header;
+    parse_header(file_header, in);
+
+    // 解析文件的段表，得到所有的段头信息
+    cout << "段的数量：" << file_header.e_shnum << " 每个段的大小：" << file_header.e_shentsize << " 段表在文件中的偏移："
+         << file_header.e_shoff << endl;
+    Elf32_Shdr section_headers[file_header.e_shnum];
+    parse_section_headers(in, file_header, section_headers);
+
+    // 获取段表字符串表的数据
+    Elf32_Half shstrtab_index = file_header.e_shstrndx;
+    Elf32_Shdr shstrtab_header = section_headers[shstrtab_index];
+    char shstrtab_content[shstrtab_header.sh_size];
+    printf("段表在文件中的偏移量：%02x, 大小：%02x \n", shstrtab_header.sh_offset, shstrtab_header.sh_size);
+    if (shstrtab_header.sh_offset > 0 && shstrtab_header.sh_size > 0) {
+        // 将数据读到内存中
+        in.seekg(shstrtab_header.sh_offset, ios::beg);
+//        cur_stream_pos(in);
+
+        in.read(shstrtab_content, sizeof(shstrtab_content));
+        print_char_arr(shstrtab_content, sizeof(shstrtab_content));
+
+        printf("段表字符串表：\n");
+        // 输出字符串
+        for (int i = 0; i < sizeof(shstrtab_content); ++i) {
+            printf("%c", shstrtab_content[i]);
+        }
+        printf("\n");
+
+    }
+
+    // 为段头的名字给定具体的字符串
+    for (int i = 0; i < file_header.e_shnum; ++i) {
+        Elf32_Shdr sercion_header = section_headers[i];
+        char section_name[20];
+        get_section_name(section_name, sercion_header.sh_name, shstrtab_content);
+        printf("段的索引：%d 段的名字：%s  段在文件中的偏移：%02x 段的大小：%02x \n",i, section_name, sercion_header.sh_offset, sercion_header.sh_size);
+    }
+
+
+
+
+
+    // 开始解析得到段表字符串表
 
 //    printf("一个char占 %d 个字节 \n", sizeof(char));
 //    Elf32_Half size = 0x194;
