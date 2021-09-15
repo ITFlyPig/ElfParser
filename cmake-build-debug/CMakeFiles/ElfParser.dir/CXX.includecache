@@ -6,17 +6,3 @@
 
 #IncludeRegexTransform: 
 
-/Users/yuelin/CLionProjects/ElfParser/main.cpp
-iostream
--
-cstdlib
--
-cmath
--
-map
--
-string
-/Users/yuelin/CLionProjects/ElfParser/string
-fstream
-/Users/yuelin/CLionProjects/ElfParser/fstream
-
