@@ -13,7 +13,7 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 link_directories(${PROJECT_SOURCE_DIR}/lib)
 
 # 运行的程序
-add_executable(ElfParser main.cpp)
+add_executable(ElfParser main.cpp ElfInfo.cpp ElfInfo.h SectionHeader.cpp SectionHeader.h ElfHeader.cpp ElfHeader.h ProgramHeader.cpp ProgramHeader.h)
 
 target_link_libraries(${PROJECT_NAME} libjsoncpp.a)
 

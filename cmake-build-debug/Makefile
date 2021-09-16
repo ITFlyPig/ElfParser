@@ -142,6 +142,114 @@ ElfParser/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/build
 .PHONY : ElfParser/fast
 
+ElfHeader.o: ElfHeader.cpp.o
+
+.PHONY : ElfHeader.o
+
+# target to build an object file
+ElfHeader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ElfHeader.cpp.o
+.PHONY : ElfHeader.cpp.o
+
+ElfHeader.i: ElfHeader.cpp.i
+
+.PHONY : ElfHeader.i
+
+# target to preprocess a source file
+ElfHeader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ElfHeader.cpp.i
+.PHONY : ElfHeader.cpp.i
+
+ElfHeader.s: ElfHeader.cpp.s
+
+.PHONY : ElfHeader.s
+
+# target to generate assembly for a file
+ElfHeader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ElfHeader.cpp.s
+.PHONY : ElfHeader.cpp.s
+
+ElfInfo.o: ElfInfo.cpp.o
+
+.PHONY : ElfInfo.o
+
+# target to build an object file
+ElfInfo.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ElfInfo.cpp.o
+.PHONY : ElfInfo.cpp.o
+
+ElfInfo.i: ElfInfo.cpp.i
+
+.PHONY : ElfInfo.i
+
+# target to preprocess a source file
+ElfInfo.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ElfInfo.cpp.i
+.PHONY : ElfInfo.cpp.i
+
+ElfInfo.s: ElfInfo.cpp.s
+
+.PHONY : ElfInfo.s
+
+# target to generate assembly for a file
+ElfInfo.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ElfInfo.cpp.s
+.PHONY : ElfInfo.cpp.s
+
+ProgramHeader.o: ProgramHeader.cpp.o
+
+.PHONY : ProgramHeader.o
+
+# target to build an object file
+ProgramHeader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o
+.PHONY : ProgramHeader.cpp.o
+
+ProgramHeader.i: ProgramHeader.cpp.i
+
+.PHONY : ProgramHeader.i
+
+# target to preprocess a source file
+ProgramHeader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ProgramHeader.cpp.i
+.PHONY : ProgramHeader.cpp.i
+
+ProgramHeader.s: ProgramHeader.cpp.s
+
+.PHONY : ProgramHeader.s
+
+# target to generate assembly for a file
+ProgramHeader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/ProgramHeader.cpp.s
+.PHONY : ProgramHeader.cpp.s
+
+SectionHeader.o: SectionHeader.cpp.o
+
+.PHONY : SectionHeader.o
+
+# target to build an object file
+SectionHeader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/SectionHeader.cpp.o
+.PHONY : SectionHeader.cpp.o
+
+SectionHeader.i: SectionHeader.cpp.i
+
+.PHONY : SectionHeader.i
+
+# target to preprocess a source file
+SectionHeader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/SectionHeader.cpp.i
+.PHONY : SectionHeader.cpp.i
+
+SectionHeader.s: SectionHeader.cpp.s
+
+.PHONY : SectionHeader.s
+
+# target to generate assembly for a file
+SectionHeader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ElfParser.dir/build.make CMakeFiles/ElfParser.dir/SectionHeader.cpp.s
+.PHONY : SectionHeader.cpp.s
+
 main.o: main.cpp.o
 
 .PHONY : main.o
@@ -178,6 +286,18 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... ElfParser"
+	@echo "... ElfHeader.o"
+	@echo "... ElfHeader.i"
+	@echo "... ElfHeader.s"
+	@echo "... ElfInfo.o"
+	@echo "... ElfInfo.i"
+	@echo "... ElfInfo.s"
+	@echo "... ProgramHeader.o"
+	@echo "... ProgramHeader.i"
+	@echo "... ProgramHeader.s"
+	@echo "... SectionHeader.o"
+	@echo "... SectionHeader.i"
+	@echo "... SectionHeader.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

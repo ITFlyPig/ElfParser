@@ -4,32 +4,121 @@
 #include <map>
 #include "string"
 #include "fstream"
+#include "json.h"
+#include "ElfHeader.h"
+#include "SectionHeader.h"
 
 using namespace std;
 
 static const int ERROR = -1;
 static const int SUCCESS = 0;
 
-map<int, string> section_type = {
-        {0,  "NULL"},
-        {1,  "PROGBITS"},
-        {2,  "SYMTAB"},
-        {3,  "STRTAB"},
-        {4,  "RELA"},
-        {5,  "HASH"},
-        {6,  "DYNAMIC"},
-        {7,  "NOTE"},
-        {8,  "NOBITS"},
-        {9,  "REL"},
-        {10, "SHLIB"},
-        {11, "DNYSYM"},
+#define EI_OSABI 7
+#define UNKNOW "unknow";
 
+map<int, string> abi_map = {
+        {0x00, "System V"},
+        {0x01, "HP-UX"},
+        {0x02, "NetBSD"},
+        {0x03, "Linux"},
+        {0x04, "GNU Hurd"},
+        {0x06, "Solaris"},
+        {0x07, "AIX"},
+        {0x09, "FreeBSD"},
+        {0x0A, "Tru64"},
+        {0x0B, "Novell Modesto"},
+        {0x0C, "OpenBSD"},
+        {0x0D, "OpenVMS"},
+        {0x0E, "NonStop Kernel"},
+        {0x0F, "AROS"},
+        {0x10, "Fenix OS"},
+        {0x11, "CloudABI"},
+        {0x12, "Stratus Technologies OpenVOS"}
 };
+
+
+
+map<uint32_t, string> machine_map = {
+        {0x00,  "No specific instruction set"},
+        {0x01,  "AT&T WE 32100"},
+        {0x02,  "SPARC"},
+        {0x03,  "x86"},
+        {0x04,  "Motorola 68000 (M68k)"},
+        {0x05,  "Motorola 88000 (M88k)"},
+        {0x06,  "Intel MCU"},
+        {0x07,  "Intel 80860"},
+        {0x08,  "MIPS"},
+        {0x09,  "IBM_System/370"},
+        {0x0A,  "MIPS RS3000 Little-endian"},
+        {0x0E,  "Hewlett-Packard PA-RISC"},
+        {0x13,  "Intel 80960"},
+        {0x14,  "PowerPC"},
+        {0x15,  "PowerPC (64-bit)"},
+        {0x16,  "S390, including S390x"},
+        {0x17,  "IBM SPU/SPC"},
+        {0x24,  "NEC V800"},
+        {0x25,  "Fujitsu FR20"},
+        {0x26,  "TRW RH-32"},
+        {0x27,  "Motorola RCE"},
+        {0x28,  "ARM (up to ARMv7/Aarch32)"},
+        {0x29,  "Digital Alpha"},
+        {0x2A,  "SuperH"},
+        {0x2B,  "SPARC Version 9"},
+        {0x2C,  "Siemens TriCore embedded processor"},
+        {0x2D,  "Argonaut RISC Core"},
+        {0x2E,  "Hitachi H8/300"},
+        {0x2F,  "Hitachi H8/300H"},
+        {0x30,  "Hitachi H8S"},
+        {0x32,  "IA-64"},
+        {0x31,  "Hitachi H8/500"},
+        {0x33,  "Stanford MIPS-X"},
+        {0x34,  "Motorola ColdFire"},
+        {0x35,  "Motorola M68HC12"},
+        {0x36,  "Fujitsu MMA Multimedia Accelerator"},
+        {0x37,  "Siemens PCP"},
+        {0x38,  "Sony nCPU embedded RISC processor"},
+        {0x39,  "Denso NDR1 microprocessor"},
+        {0x3A,  "Motorola Star*Core processor"},
+        {0x3B,  "Toyota ME16 processor"},
+        {0x3C,  "STMicroelectronics ST100 processor"},
+        {0x3D,  "Advanced Logic Corp. TinyJ embedded processor family"},
+        {0x3E,  "AMD x86-64"},
+        {0x8C,  "TMS320C6000 Family"},
+        {0xAF,  "MCST Elbrus e2k"},
+        {0xB7,  "ARM 64-bits (ARMv8/Aarch64)"},
+        {0xF3,  "RISC-V"},
+        {0xF7,  "Berkeley Packet Filter"},
+        {0x101, "WDC 65C816"}
+};
+
+map<uint32_t, string> section_type_map = {
+        {0x0, "SHT_NULL"},
+        {0x1, "SHT_PROGBITS"},
+        {0x2, "SHT_SYMTAB"},
+        {0x3, "SHT_STRTAB"},
+        {0x4, "SHT_RELA"},
+        {0x5, "SHT_HASH"},
+        {0x6, "SHT_DYNAMIC"},
+        {0x7, "SHT_NOTE"},
+        {0x8, "SHT_NOBITS"},
+        {0x9, "SHT_REL"},
+        {0x0A, "SHT_SHLIB"},
+        {0x0B, "SHT_DYNSYM"},
+        {0x0E, "SHT_INIT_ARRAY"},
+        {0x0F, "SHT_FINI_ARRAY"},
+        {0x10, "SHT_PREINIT_ARRAY"},
+        {0x11, "SHT_GROUP"},
+        {0x12, "SHT_SYMTAB_SHNDX"},
+        {0x13, "SHT_NUM"},
+        {0x60000000, "SHT_LOOS"}
+};
+
 
 typedef uint32_t Elf32_Word; // 32位版本无符号整形
 typedef uint32_t Elf32_Off;  // 32位的版本偏移地址
 typedef uint32_t Elf32_Addr; // 32位版本程序地址
 typedef uint16_t Elf32_Half;
+typedef uint64_t Elf64_Off; // 64位的地址偏移
 
 // section 结构体
 typedef struct elf32_shdr {
@@ -149,8 +238,20 @@ void parse_section_table(ifstream &in, Elf32_Off off, Elf32_Half size) {
  * @param len
  * @return
  */
-Elf32_Word to_int(unsigned char *arr, int len) {
+Elf32_Word to_int32(unsigned char *arr, int len) {
     Elf32_Word result = 0;
+    for (int i = 0; i < len; ++i) {
+        if (i == 0) {
+            result = arr[i];
+        } else {
+            result |= (arr[i] << 8 * i);
+        }
+    }
+    return result;
+}
+
+uint64_t to_int64(unsigned char *arr, int len) {
+    uint64_t result = 0;
     for (int i = 0; i < len; ++i) {
         if (i == 0) {
             result = arr[i];
@@ -177,11 +278,23 @@ void slice(unsigned char *origin, unsigned char *out, int start, int size) {
     }
 }
 
-Elf32_Word get_int(unsigned char *origin, int index, int size) {
+Elf32_Word get_int32(unsigned char *origin, int index, int size) {
     unsigned char arr[size];
     slice(origin, arr, index, size);
-    return to_int(arr, size);
+    return to_int32(arr, size);
 }
+
+uint64_t get_int64(unsigned char *origin, int index, int size) {
+    unsigned char arr[size];
+    slice(origin, arr, index, size);
+    return to_int64(arr, size);
+}
+
+//Elf64_Off get_int32(unsigned char *origin, int index, int size) {
+//    unsigned char arr[size];
+//    slice(origin, arr, index, size);
+//    return to_int32(arr, size);
+//}
 
 void fill(Elf32_Shdr *p_shdr, unsigned char *one_section_arr, int len) {
     if (len != sizeof(Elf32_Shdr)) {
@@ -191,34 +304,34 @@ void fill(Elf32_Shdr *p_shdr, unsigned char *one_section_arr, int len) {
     // 获取name
     int index = 0;
 
-    p_shdr->sh_name = get_int(one_section_arr, index, sizeof(Elf32_Word));
+    p_shdr->sh_name = get_int32(one_section_arr, index, sizeof(Elf32_Word));
     index += sizeof(Elf32_Word);
     // 获取type
-    p_shdr->sh_type = get_int(one_section_arr, index, sizeof(Elf32_Word));
+    p_shdr->sh_type = get_int32(one_section_arr, index, sizeof(Elf32_Word));
     index += sizeof(Elf32_Word);
     // 获取flags
-    p_shdr->sh_flags = get_int(one_section_arr, index, sizeof(Elf32_Word));
+    p_shdr->sh_flags = get_int32(one_section_arr, index, sizeof(Elf32_Word));
     index += sizeof(Elf32_Word);
     // 获取addr
-    p_shdr->sh_addr = get_int(one_section_arr, index, sizeof(Elf32_Addr));
+    p_shdr->sh_addr = get_int32(one_section_arr, index, sizeof(Elf32_Addr));
     index += sizeof(Elf32_Addr);
     // 获取offset
-    p_shdr->sh_offset = get_int(one_section_arr, index, sizeof(Elf32_Off));
+    p_shdr->sh_offset = get_int32(one_section_arr, index, sizeof(Elf32_Off));
     index += sizeof(Elf32_Off);
     // 获取size
-    p_shdr->sh_size = get_int(one_section_arr, index, sizeof(Elf32_Word));
+    p_shdr->sh_size = get_int32(one_section_arr, index, sizeof(Elf32_Word));
     index += sizeof(Elf32_Word);
     // 获取link
-    p_shdr->sh_link = get_int(one_section_arr, index, sizeof(Elf32_Word));
+    p_shdr->sh_link = get_int32(one_section_arr, index, sizeof(Elf32_Word));
     index += sizeof(Elf32_Word);
     // 获取info
-    p_shdr->sh_info = get_int(one_section_arr, index, sizeof(Elf32_Word));
+    p_shdr->sh_info = get_int32(one_section_arr, index, sizeof(Elf32_Word));
     index += sizeof(Elf32_Word);
     // 获取addralign
-    p_shdr->sh_addralign = get_int(one_section_arr, index, sizeof(Elf32_Word));
+    p_shdr->sh_addralign = get_int32(one_section_arr, index, sizeof(Elf32_Word));
     index += sizeof(Elf32_Word);
     // 获取entsize
-    p_shdr->sh_entsize = get_int(one_section_arr, index, sizeof(Elf32_Word));
+    p_shdr->sh_entsize = get_int32(one_section_arr, index, sizeof(Elf32_Word));
     index += sizeof(Elf32_Word);
 
 }
@@ -239,7 +352,7 @@ void parse_one_section_header(Elf32_Shdr *shdr, unsigned char *one_section_arr, 
  * @return
  */
 std::string get_type(Elf32_Word sh_type) {
-    return section_type.at(sh_type);
+    return section_type_map.at(sh_type);
 }
 
 /**
@@ -293,8 +406,7 @@ string get_magic_class(unsigned char *magic) {
         class_arr[4] = '4';
     }
     class_arr[5] = '\0';
-    string class_str = class_arr;
-    return class_str;
+    return class_arr;
 }
 
 /**
@@ -333,28 +445,35 @@ Elf32_Half read_elf32_half(ifstream &in) {
     int size = sizeof(Elf32_Half);
     unsigned char arr[size];
     read(in, arr, size);
-    return to_int(arr, size);
+    return to_int32(arr, size);
 }
 
 Elf32_Word read_elf32_word(ifstream &in) {
     int size = sizeof(Elf32_Word);
     unsigned char arr[size];
     read(in, arr, size);
-    return to_int(arr, size);
+    return to_int32(arr, size);
+}
+
+Elf64_Off read_elf64_off(ifstream &in) {
+    int size = sizeof(Elf64_Off);
+    unsigned char arr[size];
+    read(in, arr, size);
+    return to_int32(arr, size);
 }
 
 Elf32_Addr read_elf32_addr(ifstream &in) {
     int size = sizeof(Elf32_Addr);
     unsigned char arr[size];
     read(in, arr, size);
-    return to_int(arr, size);
+    return to_int32(arr, size);
 }
 
 Elf32_Off read_elf32_off(ifstream &in) {
     int size = sizeof(Elf32_Off);
     unsigned char arr[size];
     read(in, arr, size);
-    return to_int(arr, size);
+    return to_int32(arr, size);
 }
 
 /**
@@ -389,6 +508,112 @@ void parse_header(Elf32_Ehdr &header, ifstream &in) {
     header.e_shnum = read_elf32_half(in);
     header.e_shstrndx = read_elf32_half(in);
 }
+
+
+string get_magic_abi(unsigned char *magic) {
+    try {
+        string abi = abi_map.at(magic[EI_OSABI]);
+        return abi;
+    } catch (std::exception &e) {
+        cout << "获取abi异常:" << e.what() << endl;
+    }
+    return UNKNOW;
+
+
+}
+
+/**
+ * 解析得到header的type类型
+ * @param type
+ * @return
+ */
+string get_header_type(Elf32_Half type) {
+    try {
+        return section_type_map.at(type);
+    } catch (std::exception &e) {
+        cout << "解析type异常：" << e.what() << endl;
+    }
+    return UNKNOW;
+}
+
+string get_header_machine(Elf32_Half machine) {
+    try {
+        return machine_map.at(machine);
+    } catch (std::exception &e) {
+        cout << "解析machine异常：" << e.what() << endl;
+    }
+    return UNKNOW;
+}
+
+void parse_elf_header(ElfHeader &elfHeader, ifstream &in) {
+    in.seekg(0, ios::beg);
+    // 读取魔数
+    char magic[EI_NIDENT];
+    in.read(magic, EI_NIDENT);
+    // 将魔数字符化
+    for (int i = 0; i < EI_NIDENT; ++i) {
+        char temp[4];
+        sprintf(temp, "%02X ", magic[i]);
+        elfHeader.magic.append(temp);
+    }
+    // 获取class
+    elfHeader.calss_str = get_magic_class(reinterpret_cast<unsigned char *>(magic));
+    elfHeader.is_64bit = elfHeader.calss_str.find("64") != elfHeader.calss_str.npos;
+    // 获取abi
+    elfHeader.abi = get_magic_abi(reinterpret_cast<unsigned char *>(magic));
+    //获取Version
+    elfHeader.version = get_magic_version(reinterpret_cast<unsigned char *>(magic));
+    // 获取data
+    elfHeader.data = get_magic_data(reinterpret_cast<unsigned char *>(magic));
+    // 解析type 32位
+    elfHeader.type = get_header_type(read_elf32_half(in));
+    // 解析machine 32位
+    elfHeader.machine = get_header_machine(read_elf32_half(in));
+    //4字节存储e_version 32位
+    read_elf32_word(in);
+    // e_entry：elf入口虚拟地址 32位-4字节；64位-8字节
+    if (elfHeader.is_64bit) {
+        read_elf64_off(in);
+    } else {
+        read_elf32_word(in);
+    }
+    //e_phoff：Points to the start of the program header table.
+    // 32位-4字节；64位-8字节
+    if (elfHeader.is_64bit) {
+        elfHeader.program_header_table_off = read_elf64_off(in);
+    } else {
+        elfHeader.program_header_table_off = read_elf32_off(in);
+    }
+    // e_shoff：Points to the start of the section header table.
+    // 32位-4字节；64位-8字节
+    if (elfHeader.is_64bit) {
+        elfHeader.section_header_table_off = read_elf64_off(in);
+    } else {
+        elfHeader.section_header_table_off = read_elf32_off(in);
+    }
+    // e_flags：用来标志一些ELF文件平台相关的属性
+    // 32位
+    read_elf32_word(in);
+    // e_ehsize: elf头文件本身的大小
+    // 32位
+    elfHeader.elf_header_size = read_elf32_half(in);
+    // e_phentsize:  the size of a program header table entry.
+    // 32位
+    elfHeader.program_header_entry_size = read_elf32_half(in);
+    // e_phnum: the number of entries in the program header table.
+    // 32位
+    elfHeader.program_header_entry_num = read_elf32_half(in);
+    // e_shentsize: the size of a section header table entry.
+    // 32位
+    elfHeader.section_header_entry_size = read_elf32_half(in);
+    // e_shnum: the number of entries in the section header table.
+    // 32位
+    elfHeader.section_header_entry_num = read_elf32_half(in);
+    // e_shstrndx: 段表字符串表在段表中的下标
+
+    cout << elfHeader.toJson() << endl;
+}
+
 
 /**
  * 解析段表，得到段头信息
@@ -433,7 +658,7 @@ void cur_stream_pos(ifstream &in) {
  * @param shstrtab_content
  * @return
  */
-void get_section_name(char * section_name, Elf32_Word off, char *shstrtab_content) {
+void get_section_name(char *section_name, Elf32_Word off, char *shstrtab_content) {
     Elf32_Word index = 0;
     Elf32_Word offset = off;
     while (shstrtab_content[offset] != '\0') {
@@ -444,11 +669,122 @@ void get_section_name(char * section_name, Elf32_Word off, char *shstrtab_conten
     section_name[index] = '\0';
 }
 
+string get_section_type(uint32_t type) {
+    try {
+        return section_type_map.at(type);
+    } catch (std::exception& e) {
+        cout <<  "获取section对应的type失败：type=" << type << endl;
+    }
+    return "";
+}
+
+/**
+ * 解析一个段的数据
+ * @param section_header
+ * @param buff
+ * @param size
+ */
+void parse_one_section_header(SectionHeader *section_header, bool is64bit, unsigned char *buff, uint32_t size) {
+    if (section_header == nullptr || buff == nullptr || size <= 0) return;
+
+    int index = 0;
+    // name：段的名字在段表字符串表中的偏移量 4字节
+    section_header->sh_name = get_int32(buff, index, sizeof(Elf32_Word));
+    index += sizeof(Elf32_Word);
+    // type：段类型 4字节
+    section_header->sh_type = get_int32(buff, index, sizeof(Elf32_Word));
+    section_header->type = get_section_type(section_header->sh_type);
+    index += sizeof(Elf32_Word);
+    // flags：标志 32位4字节；64位8字节
+    if (is64bit) {
+        section_header->sh_flags = get_int64(buff, index, sizeof(Elf64_Off));
+        index += sizeof(Elf64_Off);
+    } else{
+        section_header->sh_flags = get_int32(buff, index, sizeof(Elf32_Word));
+        index += sizeof(Elf32_Word);
+    }
+    // addr：段加载到内存中的虚拟地址 32位4字节；64位8字节
+    if (is64bit) {
+        section_header->sh_addr = get_int64(buff, index, sizeof(Elf64_Off));
+        index += sizeof(Elf64_Off);
+    } else {
+        section_header->sh_addr = get_int32(buff, index, sizeof(Elf32_Word));
+        index += sizeof(Elf32_Word);
+    }
+    // offset: 段在文件中的偏移地址  32位4字节；64位8字节
+    if (is64bit) {
+        section_header->sh_offset = get_int64(buff, index, sizeof(Elf64_Off));
+        index += sizeof(Elf64_Off);
+    } else {
+        section_header->sh_offset = get_int32(buff, index, sizeof(Elf32_Word));
+        index += sizeof(Elf32_Word);
+    }
+    char temp[10];
+    sprintf(temp, "0X%X", section_header->sh_offset);
+    section_header->offset = temp;
+    // size: 段的长度 32位4字节；64位8字节
+    if (is64bit) {
+        section_header->sh_size = get_int64(buff, index, sizeof(Elf64_Off));
+        index += sizeof(Elf64_Off);
+    } else {
+        section_header->sh_size = get_int32(buff, index, sizeof(Elf32_Word));
+        index += sizeof(Elf32_Word);
+    }
+    // link  4字节
+    section_header->sh_link = get_int32(buff, index, sizeof(Elf32_Word));
+    index += sizeof(Elf32_Word);
+    // info 4字节
+    section_header->sh_info = get_int32(buff, index, sizeof(Elf32_Word));
+    index += sizeof(Elf32_Word);
+    // addralign：对齐 32位4字节；64位8字节
+    if (is64bit) {
+        section_header->sh_addralign = get_int64(buff, index, sizeof(Elf64_Off));
+        index += sizeof(Elf64_Off);
+    } else {
+        section_header->sh_addralign = get_int32(buff, index, sizeof(Elf32_Word));
+        index += sizeof(Elf32_Word);
+    }
+    // entsize 32位4字节；64位8字节
+    if (is64bit) {
+        section_header->sh_entsize = get_int64(buff, index, sizeof(Elf64_Off));
+        index += sizeof(Elf64_Off);
+    } else {
+        section_header->sh_entsize = get_int32(buff, index, sizeof(Elf32_Word));
+        index += sizeof(Elf32_Word);
+    }
+}
+
+/**
+ * 解析段头表
+ * @param vector
+ * @param in
+ */
+void parse_section_header_table(const ElfHeader &elf_header, vector<SectionHeader *> &headers, ifstream &in) {
+    // 参数检查
+    if (elf_header.section_header_table_off <= 0 || elf_header.section_header_entry_num <= 0) return;
+
+    in.seekg(elf_header.section_header_table_off, ios::beg);
+
+    for (int i = 0; i < elf_header.section_header_entry_num; ++i) {
+        // 读取一个段header的数据
+        char buff[elf_header.section_header_entry_size];
+        in.read(buff, elf_header.section_header_entry_size);
+        // 解析数据
+        SectionHeader *section_header = new SectionHeader();
+        section_header->index = i;
+        parse_one_section_header(section_header, elf_header.is_64bit, reinterpret_cast<unsigned char *>(buff), elf_header.section_header_entry_size);
+        cout << "段相关的数据：" << section_header->to_json().toStyledString() << endl;
+        headers.push_back(section_header);
+    }
+}
+
 int main() {
 //    unsigned char c = 152;
 //    printf("%02x ", c);
 
     std::string elf_path = "/Users/yuelin/Documents/Android优化/so结构/libnative-lib.so";
+    Json::Value root;
+    root["name"] = "wangyuelin";
 
     ifstream in;
     in.open(elf_path, ios::in);
@@ -456,9 +792,20 @@ int main() {
         cout << "文件打开失败" << endl;
         return -1;
     }
+    ElfHeader elfHeader;
+    parse_elf_header(elfHeader, in);
     // 解析文件头
     Elf32_Ehdr file_header;
     parse_header(file_header, in);
+
+    // 解析section header table -> section headers
+    vector<SectionHeader *> section_headers;
+    parse_section_header_table(elfHeader, section_headers, in);
+
+
+
+
+    /*
 
     // 解析文件的段表，得到所有的段头信息
     cout << "段的数量：" << file_header.e_shnum << " 每个段的大小：" << file_header.e_shentsize << " 段表在文件中的偏移："
@@ -493,10 +840,11 @@ int main() {
         Elf32_Shdr sercion_header = section_headers[i];
         char section_name[20];
         get_section_name(section_name, sercion_header.sh_name, shstrtab_content);
-        printf("段的索引：%d 段的名字：%s  段在文件中的偏移：%02x 段的大小：%02x \n",i, section_name, sercion_header.sh_offset, sercion_header.sh_size);
+        printf("段的索引：%d 段的名字：%s  段在文件中的偏移：%02x 段的大小：%02x \n", i, section_name, sercion_header.sh_offset,
+               sercion_header.sh_size);
     }
 
-
+*/
 
 
 
@@ -678,3 +1026,5 @@ int main() {
 
     return 0;
 }
+
+

@@ -4,6 +4,10 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
+  "/Users/yuelin/CLionProjects/ElfParser/ElfHeader.cpp" "/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles/ElfParser.dir/ElfHeader.cpp.o"
+  "/Users/yuelin/CLionProjects/ElfParser/ElfInfo.cpp" "/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles/ElfParser.dir/ElfInfo.cpp.o"
+  "/Users/yuelin/CLionProjects/ElfParser/ProgramHeader.cpp" "/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o"
+  "/Users/yuelin/CLionProjects/ElfParser/SectionHeader.cpp" "/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles/ElfParser.dir/SectionHeader.cpp.o"
   "/Users/yuelin/CLionProjects/ElfParser/main.cpp" "/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles/ElfParser.dir/main.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "AppleClang")

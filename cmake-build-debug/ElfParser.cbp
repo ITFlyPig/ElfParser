@@ -82,6 +82,30 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/ElfHeader.cpp">
+			<Option target="ElfParser"/>
+		</Unit>
+		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/ElfHeader.h">
+			<Option target="ElfParser"/>
+		</Unit>
+		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/ElfInfo.cpp">
+			<Option target="ElfParser"/>
+		</Unit>
+		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/ElfInfo.h">
+			<Option target="ElfParser"/>
+		</Unit>
+		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/ProgramHeader.cpp">
+			<Option target="ElfParser"/>
+		</Unit>
+		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/ProgramHeader.h">
+			<Option target="ElfParser"/>
+		</Unit>
+		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/SectionHeader.cpp">
+			<Option target="ElfParser"/>
+		</Unit>
+		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/SectionHeader.h">
+			<Option target="ElfParser"/>
+		</Unit>
 		<Unit filename="/Users/yuelin/CLionProjects/ElfParser/main.cpp">
 			<Option target="ElfParser"/>
 		</Unit>

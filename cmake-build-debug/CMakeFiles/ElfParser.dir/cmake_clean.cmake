@@ -1,4 +1,8 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/ElfParser.dir/ElfHeader.cpp.o"
+  "CMakeFiles/ElfParser.dir/ElfInfo.cpp.o"
+  "CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o"
+  "CMakeFiles/ElfParser.dir/SectionHeader.cpp.o"
   "CMakeFiles/ElfParser.dir/main.cpp.o"
   "ElfParser"
   "ElfParser.pdb"

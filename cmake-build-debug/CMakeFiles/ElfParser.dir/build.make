@@ -89,17 +89,77 @@ CMakeFiles/ElfParser.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ElfParser.dir/main.cpp.s"
 	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yuelin/CLionProjects/ElfParser/main.cpp -o CMakeFiles/ElfParser.dir/main.cpp.s
 
+CMakeFiles/ElfParser.dir/ElfInfo.cpp.o: CMakeFiles/ElfParser.dir/flags.make
+CMakeFiles/ElfParser.dir/ElfInfo.cpp.o: ../ElfInfo.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/ElfParser.dir/ElfInfo.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ElfParser.dir/ElfInfo.cpp.o -c /Users/yuelin/CLionProjects/ElfParser/ElfInfo.cpp
+
+CMakeFiles/ElfParser.dir/ElfInfo.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ElfParser.dir/ElfInfo.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yuelin/CLionProjects/ElfParser/ElfInfo.cpp > CMakeFiles/ElfParser.dir/ElfInfo.cpp.i
+
+CMakeFiles/ElfParser.dir/ElfInfo.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ElfParser.dir/ElfInfo.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yuelin/CLionProjects/ElfParser/ElfInfo.cpp -o CMakeFiles/ElfParser.dir/ElfInfo.cpp.s
+
+CMakeFiles/ElfParser.dir/SectionHeader.cpp.o: CMakeFiles/ElfParser.dir/flags.make
+CMakeFiles/ElfParser.dir/SectionHeader.cpp.o: ../SectionHeader.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/ElfParser.dir/SectionHeader.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ElfParser.dir/SectionHeader.cpp.o -c /Users/yuelin/CLionProjects/ElfParser/SectionHeader.cpp
+
+CMakeFiles/ElfParser.dir/SectionHeader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ElfParser.dir/SectionHeader.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yuelin/CLionProjects/ElfParser/SectionHeader.cpp > CMakeFiles/ElfParser.dir/SectionHeader.cpp.i
+
+CMakeFiles/ElfParser.dir/SectionHeader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ElfParser.dir/SectionHeader.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yuelin/CLionProjects/ElfParser/SectionHeader.cpp -o CMakeFiles/ElfParser.dir/SectionHeader.cpp.s
+
+CMakeFiles/ElfParser.dir/ElfHeader.cpp.o: CMakeFiles/ElfParser.dir/flags.make
+CMakeFiles/ElfParser.dir/ElfHeader.cpp.o: ../ElfHeader.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/ElfParser.dir/ElfHeader.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ElfParser.dir/ElfHeader.cpp.o -c /Users/yuelin/CLionProjects/ElfParser/ElfHeader.cpp
+
+CMakeFiles/ElfParser.dir/ElfHeader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ElfParser.dir/ElfHeader.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yuelin/CLionProjects/ElfParser/ElfHeader.cpp > CMakeFiles/ElfParser.dir/ElfHeader.cpp.i
+
+CMakeFiles/ElfParser.dir/ElfHeader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ElfParser.dir/ElfHeader.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yuelin/CLionProjects/ElfParser/ElfHeader.cpp -o CMakeFiles/ElfParser.dir/ElfHeader.cpp.s
+
+CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o: CMakeFiles/ElfParser.dir/flags.make
+CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o: ../ProgramHeader.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o -c /Users/yuelin/CLionProjects/ElfParser/ProgramHeader.cpp
+
+CMakeFiles/ElfParser.dir/ProgramHeader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ElfParser.dir/ProgramHeader.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/yuelin/CLionProjects/ElfParser/ProgramHeader.cpp > CMakeFiles/ElfParser.dir/ProgramHeader.cpp.i
+
+CMakeFiles/ElfParser.dir/ProgramHeader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ElfParser.dir/ProgramHeader.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/yuelin/CLionProjects/ElfParser/ProgramHeader.cpp -o CMakeFiles/ElfParser.dir/ProgramHeader.cpp.s
+
 # Object files for target ElfParser
 ElfParser_OBJECTS = \
-"CMakeFiles/ElfParser.dir/main.cpp.o"
+"CMakeFiles/ElfParser.dir/main.cpp.o" \
+"CMakeFiles/ElfParser.dir/ElfInfo.cpp.o" \
+"CMakeFiles/ElfParser.dir/SectionHeader.cpp.o" \
+"CMakeFiles/ElfParser.dir/ElfHeader.cpp.o" \
+"CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o"
 
 # External object files for target ElfParser
 ElfParser_EXTERNAL_OBJECTS =
 
 ElfParser: CMakeFiles/ElfParser.dir/main.cpp.o
+ElfParser: CMakeFiles/ElfParser.dir/ElfInfo.cpp.o
+ElfParser: CMakeFiles/ElfParser.dir/SectionHeader.cpp.o
+ElfParser: CMakeFiles/ElfParser.dir/ElfHeader.cpp.o
+ElfParser: CMakeFiles/ElfParser.dir/ProgramHeader.cpp.o
 ElfParser: CMakeFiles/ElfParser.dir/build.make
 ElfParser: CMakeFiles/ElfParser.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable ElfParser"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/yuelin/CLionProjects/ElfParser/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable ElfParser"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/ElfParser.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
