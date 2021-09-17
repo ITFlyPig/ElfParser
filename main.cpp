@@ -37,7 +37,6 @@ map<int, string> abi_map = {
 };
 
 
-
 map<uint32_t, string> machine_map = {
         {0x00,  "No specific instruction set"},
         {0x01,  "AT&T WE 32100"},
@@ -92,25 +91,32 @@ map<uint32_t, string> machine_map = {
 };
 
 map<uint32_t, string> section_type_map = {
-        {0x0, "SHT_NULL"},
-        {0x1, "SHT_PROGBITS"},
-        {0x2, "SHT_SYMTAB"},
-        {0x3, "SHT_STRTAB"},
-        {0x4, "SHT_RELA"},
-        {0x5, "SHT_HASH"},
-        {0x6, "SHT_DYNAMIC"},
-        {0x7, "SHT_NOTE"},
-        {0x8, "SHT_NOBITS"},
-        {0x9, "SHT_REL"},
-        {0x0A, "SHT_SHLIB"},
-        {0x0B, "SHT_DYNSYM"},
-        {0x0E, "SHT_INIT_ARRAY"},
-        {0x0F, "SHT_FINI_ARRAY"},
-        {0x10, "SHT_PREINIT_ARRAY"},
-        {0x11, "SHT_GROUP"},
-        {0x12, "SHT_SYMTAB_SHNDX"},
-        {0x13, "SHT_NUM"},
-        {0x60000000, "SHT_LOOS"}
+        {0x0,        "SHT_NULL"},
+        {0x1,        "SHT_PROGBITS"},
+        {0x2,        "SHT_SYMTAB"},
+        {0x3,        "SHT_STRTAB"},
+        {0x4,        "SHT_RELA"},
+        {0x5,        "SHT_HASH"},
+        {0x6,        "SHT_DYNAMIC"},
+        {0x7,        "SHT_NOTE"},
+        {0x8,        "SHT_NOBITS"},
+        {0x9,        "SHT_REL"},
+        {0x0A,       "SHT_SHLIB"},
+        {0x0B,       "SHT_DYNSYM"},
+        {0x0E,       "SHT_INIT_ARRAY"},
+        {0x0F,       "SHT_FINI_ARRAY"},
+        {0x10,       "SHT_PREINIT_ARRAY"},
+        {0x11,       "SHT_GROUP"},
+        {0x12,       "SHT_SYMTAB_SHNDX"},
+        {0x13,       "SHT_NUM"},
+        {0x60000000, "SHT_LOOS"},
+        {0x7fffffff, "SHT_HIPROC"},
+        {0xffffffff, "SHT_HIUSER"},
+        {0x70000000, "SHT_LOPROC"},
+        {0x80000000, "SHT_LOUSER"},
+        {0x6ffffffd, "SHT_GNU_verdef"},
+        {0x6ffffffe, "SHT_GNU_verneed"},
+        {0x6fffffff, "SHT_GNU_versym"}
 };
 
 
@@ -609,7 +615,8 @@ void parse_elf_header(ElfHeader &elfHeader, ifstream &in) {
     // e_shnum: the number of entries in the section header table.
     // 32位
     elfHeader.section_header_entry_num = read_elf32_half(in);
-    // e_shstrndx: 段表字符串表在段表中的下标
+    // e_shstrndx: 段表字符串表在段表中的下标  2字节
+    elfHeader.shstrndx = read_elf32_half(in);
 
     cout << elfHeader.toJson() << endl;
 }
@@ -672,8 +679,8 @@ void get_section_name(char *section_name, Elf32_Word off, char *shstrtab_content
 string get_section_type(uint32_t type) {
     try {
         return section_type_map.at(type);
-    } catch (std::exception& e) {
-        cout <<  "获取section对应的type失败：type=" << type << endl;
+    } catch (std::exception &e) {
+        cout << "获取section对应的type失败：type=" << type << endl;
     }
     return "";
 }
@@ -699,7 +706,7 @@ void parse_one_section_header(SectionHeader *section_header, bool is64bit, unsig
     if (is64bit) {
         section_header->sh_flags = get_int64(buff, index, sizeof(Elf64_Off));
         index += sizeof(Elf64_Off);
-    } else{
+    } else {
         section_header->sh_flags = get_int32(buff, index, sizeof(Elf32_Word));
         index += sizeof(Elf32_Word);
     }
@@ -772,10 +779,35 @@ void parse_section_header_table(const ElfHeader &elf_header, vector<SectionHeade
         // 解析数据
         SectionHeader *section_header = new SectionHeader();
         section_header->index = i;
-        parse_one_section_header(section_header, elf_header.is_64bit, reinterpret_cast<unsigned char *>(buff), elf_header.section_header_entry_size);
-        cout << "段相关的数据：" << section_header->to_json().toStyledString() << endl;
+        parse_one_section_header(section_header, elf_header.is_64bit, reinterpret_cast<unsigned char *>(buff),
+                                 elf_header.section_header_entry_size);
         headers.push_back(section_header);
     }
+}
+
+/**
+ * 为段填充名字
+ * @param header_list
+ * @param elf_header
+ * @param in
+ */
+void fill_section_name(vector<SectionHeader*>& header_list, const ElfHeader& elf_header, ifstream& in) {
+    // 获取段表字符串表的 段的头
+    SectionHeader* shstrtab_header = header_list.at(elf_header.shstrndx);
+    if (shstrtab_header == nullptr) return;
+    // 将header描述的段，读取到内存中
+    char buff[shstrtab_header->sh_size];
+    in.seekg(shstrtab_header->sh_offset, ios::beg);
+    in.read(buff, sizeof(buff));
+    // 为每一个段从段表字符串表中获取对应的名字
+    for (const auto header : header_list) {
+        // 存储获取的名字
+        char section_name[20];
+        // 据给定的偏移，从内存中获取名字
+        get_section_name(section_name, header->sh_name, buff);
+        header->name = section_name;
+    }
+
 }
 
 int main() {
@@ -802,7 +834,26 @@ int main() {
     vector<SectionHeader *> section_headers;
     parse_section_header_table(elfHeader, section_headers, in);
 
+    // 填充名字
+    fill_section_name(section_headers, elfHeader, in);
 
+    for (const auto item : section_headers) {
+        cout << "段相关的数据：" << item->to_json().toStyledString() << endl;
+    }
+
+
+
+
+
+
+
+
+
+
+    // 将手动申请的内存释放
+    for (const auto item : section_headers) {
+        delete item;
+    }
 
 
     /*
